@@ -7,4 +7,3 @@ public class AutreClasse {
         this.une_chaine_lisible = parametre;
     }
 }
-
