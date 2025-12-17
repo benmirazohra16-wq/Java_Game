@@ -58,7 +58,7 @@ public class GameRender extends JPanel {
             // Texte de défaite
             g.setColor(Color.ORANGE);
             g.setFont(new Font("Arial", Font.BOLD, 60));
-            g.drawString("GAME OVER : Vous êtes mort", 200, 300);
+            g.drawString("GAME OVER", 200, 300);
         }
         else if (isVictory) {
             // Fond semi-transparent doré/jaune
@@ -68,7 +68,7 @@ public class GameRender extends JPanel {
             // Texte de victoire
             g.setColor(Color.YELLOW);
             g.setFont(new Font("Arial", Font.BOLD, 60));
-            g.drawString("VICTOIRE ! : Niveau 1 passé", 230, 300);
+            g.drawString("VICTOIRE", 230, 300);
         }
     }
 }

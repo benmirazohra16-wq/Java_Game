@@ -24,7 +24,7 @@ public class MainInterface extends JFrame {
             public void keyReleased(KeyEvent e) { }
             @Override
             public void keyPressed(KeyEvent e) {
-                // Si le jeu est fini (vie=0), on empêche le héros de bouger !
+                // Si le jeu est fini (vie=0), on empêche le héros de bouger
                 if (hero.getLife() <= 0) return;
 
                 int key = e.getKeyCode();
@@ -35,12 +35,12 @@ public class MainInterface extends JFrame {
                     case KeyEvent.VK_RIGHT: hero.moveIfPossible(speed, 0, dungeon); break;
                     case KeyEvent.VK_UP:    hero.moveIfPossible(0, -speed, dungeon); break;
                     case KeyEvent.VK_DOWN:  hero.moveIfPossible(0, speed, dungeon); break;
-                }
+                } 
                 renderPanel.repaint();
             }
         });
 
-        // --- TIMER (Cerveau du jeu) ---
+        // La partie suivante permet de lancer le jeu 
         Timer timer = new Timer(100, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

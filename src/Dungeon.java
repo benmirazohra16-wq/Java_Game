@@ -18,7 +18,6 @@ public class Dungeon {
         this.listThings = new ArrayList<>();
 
         try {
-            // --- ÉTAPE 1 : PREMIÈRE LECTURE DU FICHIER ---
             // On lit le fichier une première fois juste pour connaître la taille de celui-ci
             FileReader fileReader = new FileReader(fileName);
             BufferedReader br = new BufferedReader(fileReader);
