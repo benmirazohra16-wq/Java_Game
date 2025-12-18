@@ -65,6 +65,9 @@ public class MainInterface extends JFrame {
                 if (currentTile == 'L') {
                     hero.takeDamage(3); // 3 points perdu lorsque l'on rentre en contacte avec de la lave
                 }
+                if (currentTile == 'G') {
+                    hero.takePoint(1); // 3 points en plus d guérisons lorsqu'on entre en contacte avec la possion
+                }
                 
                 // Vérification du contacte avec la porte E et donc de la fin de mission : Victoire
                 if (currentTile == 'E') {

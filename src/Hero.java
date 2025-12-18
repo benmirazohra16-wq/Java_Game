@@ -51,4 +51,14 @@ public final class Hero extends DynamicThings {
         }
         System.out.println("Attention touché !  Vie restante : " + life);
     }
+
+    // On peut aussi ajouter de la vie a notre héros
+    // si il arrive à 100, il ne prends plus rien
+    public void takePoint(int point) {
+        this.life += point;
+        if (this.life > 100) {
+            this.life = 100;
+        }
+        System.out.println("Guérisson en cours Vie restante : " + life);
+    }
 }

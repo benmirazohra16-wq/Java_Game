@@ -120,6 +120,10 @@ public class Dungeon {
                     // SOL 1 : Things - Image (2, 2)
                     listThings.add(new Things(x, y, tileManager.getTile(2, 2)));
                 }
+                else if (c == 'G') {
+                    // Guérision : Reprend des points de vie - Image (1,7 )
+                    listThings.add(new Things(x, y, tileManager.getTile(1, 7)));
+                }
                 else {
                     // PAR DEFAUT : Sol simple - Image (4,0)
                     listThings.add(new Things(x, y, tileManager.getTile(4, 0)));
