@@ -2,6 +2,7 @@
 
 import javax.swing.JPanel;
 import java.awt.Graphics;
+import java.awt.Graphics2D; // NÉCESSAIRE POUR LA CAMÉRA
 import java.awt.Color;
 import java.awt.Font; // Import pour changer la taille du texte
 import java.awt.Image; // Pour afficher les images des héros dans le menu
@@ -19,15 +20,29 @@ public class GameRender extends JPanel {
     // Index du héros choisi (0, 1 ou 2)
     private int selectedHeroIndex = 0; 
 
+    // --- NOUVEAUX ATTRIBUTS (POUR FPS ET TIMER) ---
+    private long startTime;       // Heure de début du jeu
+    private int frames = 0;       // Compteur d'images
+    private long lastTime = 0;    // Pour le calcul du FPS
+    private int currentFPS = 0;   // La valeur affichée
+
     public GameRender(Dungeon dungeon, Hero hero, TileManager tm) {
         this.dungeon = dungeon;
         this.hero = hero;
         this.tileManager = tm;
+        
+        // Initialisation des chronomètres
+        this.startTime = System.currentTimeMillis();
+        this.lastTime = System.currentTimeMillis();
     }
 
     // Cette methode nous permettra de changer l'état du jeu depuis notre MainInterface
     public void setState(State state) {
         this.state = state;
+        // Si on lance le jeu, on reset le timer
+        if (state == State.PLAY) {
+            this.startTime = System.currentTimeMillis();
+        }
     }
 
     public State getState() {
@@ -47,11 +62,16 @@ public class GameRender extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g; // Conversion pour la caméra
         
+        // --- 1. FOND NOIR (CORRECTION DU BLANC) ---
+        // On peint tout l'écran en noir avant de commencer pour éviter les bordures blanches
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, this.getWidth(), this.getHeight());
+
         // Affichage du menu
         if (state == State.MENU) {
-            g.setColor(Color.BLACK);
-            g.fillRect(0, 0, 800, 600);
+            // Le fond est déjà noir grâce au code ci-dessus
             
             // Titre
             g.setColor(Color.WHITE);
@@ -88,12 +108,29 @@ public class GameRender extends JPanel {
             return; // On arrête l'affichage ici pour le menu
         }
 
+        // --- GESTION CAMÉRA (Suivi Strict) ---
+        // On calcule le centre de l'écran (400, 300)
+        int centerX = this.getWidth() / 2;
+        int centerY = this.getHeight() / 2;
+        
+        // On veut que le héros (hero.x, hero.y) soit affiché au centre.
+        // On ajoute +16 pour centrer sur le milieu du sprite (32x32)
+        double camX = (hero.getX() + 16) - centerX;
+        double camY = (hero.getY() + 16) - centerY;
+
+        // On applique le décalage (Translation négative)
+        g2d.translate(-camX, -camY);
 
         // Affichage du jeu grace au "draw"
+        // Tout ce qui est dessiné ici bougera avec la caméra
         for (Things thing : dungeon.getListThings()) {
             thing.draw(g);
         }
         hero.draw(g);
+        
+        // --- FIN CAMÉRA ---
+        // On annule le décalage pour dessiner l'interface fixe par-dessus
+        g2d.translate(camX, camY);
         
         // Affichage de la barre de vie de notre héro 
         g.setColor(Color.BLACK);// Contours
@@ -104,6 +141,27 @@ public class GameRender extends JPanel {
         g.fillRect(6, 6, lifeWidth, 20); 
         g.setColor(Color.WHITE); // Fond de la barre
         g.drawRect(5, 5, 202, 22);
+
+        // --- AFFICHAGE TIMER & FPS ---
+        if (state == State.PLAY) {
+            // Calcul du Timer
+            long now = System.currentTimeMillis();
+            long duration = (now - startTime) / 1000; // Temps en secondes
+            
+            // Calcul du FPS
+            frames++;
+            if (now - lastTime >= 1000) { // Si une seconde est passée
+                currentFPS = frames;
+                frames = 0;
+                lastTime = now;
+            }
+
+            // Affichage en haut à droite
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.BOLD, 15));
+            g.drawString("Temps: " + duration + "s", 650, 30);
+            g.drawString("FPS: " + currentFPS, 650, 50);
+        }
 
         // Affichage de l'écran de fin en fonction du status de GameOver et Victory
         if (state == State.GAME_OVER) {
