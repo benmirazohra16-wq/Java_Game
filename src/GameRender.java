@@ -6,6 +6,7 @@ import java.awt.Graphics2D; // NÉCESSAIRE POUR LA CAMÉRA
 import java.awt.Color;
 import java.awt.Font; // Import pour changer la taille du texte
 import java.awt.Image; // Pour afficher les images des héros dans le menu
+import java.awt.BasicStroke; // Pour épaissir le cadre de sélection
 
 public class GameRender extends JPanel {
     private Dungeon dungeon;
@@ -93,11 +94,18 @@ public class GameRender extends JPanel {
             g.drawImage(hero3, 536, 250, 64, 64, null);
 
             // Cadre de sélection du joueur une fois sélectionner
-            g.setColor(Color.YELLOW);
+            g2d.setColor(Color.YELLOW);
+            g2d.setStroke(new BasicStroke(3)); // On met un trait un peu plus épais pour bien voir
+            
             // On dessine le cadre autour du bon perso selon selectedHeroIndex
             if (selectedHeroIndex == 0) g.drawRect(195, 245, 74, 74);
             if (selectedHeroIndex == 1) g.drawRect(363, 245, 74, 74);
             if (selectedHeroIndex == 2) g.drawRect(531, 245, 74, 74);
+
+            // Petit texte d'aide pour le clavier
+            g.setColor(Color.LIGHT_GRAY);
+            g.setFont(new Font("Arial", Font.ITALIC, 15));
+            g.drawString("Utilise les flèches <- -> et ENTRÉE", 280, 350);
 
             // Bouton JOUER
             g.setColor(Color.GRAY);
