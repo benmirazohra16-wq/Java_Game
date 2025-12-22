@@ -12,11 +12,18 @@ public class Dungeon {
     private TileManager tileManager; // Référence vers le gestionnaire d'images (notre TileSet)
     private ArrayList<Things> listThings; // La liste de tous les objets (murs, sol, monstres) à afficher sur notre carte
 
-// On créer ensuite un constructeur afin de charger depuis notre fichier texte les éléments de notre décor : murs, Sols, Monstres..
+    // On créer ensuite un constructeur afin de charger depuis notre fichier texte les éléments de notre décor : murs, Sols, Monstres..
     public Dungeon(String fileName, TileManager tileManager) {
         this.tileManager = tileManager;
         this.listThings = new ArrayList<>();
+        
+        // Au lieu de tout charger ici, on appelle la méthode loadLevel
+        // Cela nous permettra de réutiliser cette méthode pour charger le niveau 2 plus tard
+        loadLevel(fileName);
+    }
 
+    // On s'est rendu compte qu'il etait plus facile de creer un méthode load qui nous permettrait de charger entre les eventuelles différents niveaux 
+    public void loadLevel(String fileName) {
         try {
             // On lit le fichier une première fois juste pour connaître la taille de celui-ci
             FileReader fileReader = new FileReader(fileName);
@@ -76,8 +83,8 @@ public class Dungeon {
         respawnListOfThings();
     }
 
-// Une fois la premier patie faite, nous allons ensuite faire correspondre chacune de ces lettres à un icone précis
-// Cette opération nous permet de voir le jeu prendre vie avec ces décors et son cheminement. 
+    // Une fois la premier patie faite, nous allons ensuite faire correspondre chacune de ces lettres à un icone précis
+    // Cette opération nous permet de voir le jeu prendre vie avec ces décors et son cheminement. 
     public void respawnListOfThings() {
         listThings.clear(); // On vide la liste avant de la remplir
         
@@ -95,17 +102,22 @@ public class Dungeon {
                 } 
                 else if (c == 'L') {
                     // LAVE : Things (Traversable -> Piège) - Image (7,1)
-                    // C'est un Things et pas un SolidThings car le héros doit marcher dessus pour se brûler.
-                    // A la base cela devait être un SolidThings, mais nous avons adapter afin d'avoir un "piège" dans notre jeu 
                     listThings.add(new Things(x, y, tileManager.getTile(7, 1)));
                 }
                 else if (c == 'X') {
-                    // ENNEMIE : Things, ces ennemies nous permettrons de nous battrent a long terme
-                    // mais également de nous infliger des dégats  - Image (6,4)
+                    // ENNEMIE : Things - Image (6,4)
                     listThings.add(new Things(x, y, tileManager.getTile(6, 4)));
                 }
                 else if (c == 'E') {
-                    // SORTIE : Things - Image (0,3)
+                    // SORTIE FINALE : Things - Image (0,3)
+                    listThings.add(new Things(x, y, tileManager.getTile(0, 3)));
+                }
+                else if (c == 'N') {
+                    // AJOUT : Porte vers le niveau suivant - On utilise l'image de la porte (0,3)
+                    listThings.add(new Things(x, y, tileManager.getTile(0, 3)));
+                }
+                else if (c == 'P') {
+                    // AJOUT : Porte vers le niveau précédent - Image porte (0,3)
                     listThings.add(new Things(x, y, tileManager.getTile(0, 3)));
                 }
                 else if (c == 'F') {
@@ -124,6 +136,10 @@ public class Dungeon {
                     // Guérision : Reprend des points de vie - Image (1,7 )
                     listThings.add(new Things(x, y, tileManager.getTile(1, 7)));
                 }
+                else if (c == 'B') {
+                    // Anneau recherché : Victoire - Image (1,7 )
+                    listThings.add(new Things(x, y, tileManager.getTile(4, 7)));
+                }
                 else {
                     // PAR DEFAUT : Sol simple - Image (4,0)
                     listThings.add(new Things(x, y, tileManager.getTile(4, 0)));
@@ -137,8 +153,8 @@ public class Dungeon {
     public int getHeight() { return height; }
     public int getWidth() { return width; }
 
-// Cette fonction vérifie d'abord si les coordonnées sont valides. 
-// Si oui, elle renvoie la lettre (L : Lave, W :Mur...). Si non, elle renvoie du vide pour ne pas planter
+    // Cette fonction vérifie d'abord si les coordonnées sont valides. 
+    // Si oui, elle renvoie la lettre (L : Lave, W :Mur...). Si non, elle renvoie du vide pour ne pas planter
     public char getTileChar(int indexX, int indexY) {
         // On vérifie que les coordonnées sont bien dans la carte pour éviter un crash
         if (indexY >= 0 && indexY < height && indexX >= 0 && indexX < width) {

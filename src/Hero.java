@@ -61,4 +61,14 @@ public final class Hero extends DynamicThings {
         }
         System.out.println("Guérisson en cours Vie restante : " + life);
     }
+
+    public void respawn() {
+        this.life = 100;
+        // Remet ici les coordonnées de départ (ex: 300, 400 comme dans ton Main)
+        this.x = 300; 
+        this.y = 400;
+        if (getHitBox() != null) {
+            getHitBox().setPosition(x, y);
+        }
+    }
 }

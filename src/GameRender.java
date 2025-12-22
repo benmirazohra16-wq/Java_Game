@@ -4,35 +4,91 @@ import javax.swing.JPanel;
 import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.Font; // Import pour changer la taille du texte
+import java.awt.Image; // Pour afficher les images des héros dans le menu
 
 public class GameRender extends JPanel {
     private Dungeon dungeon;
     private Hero hero;
+    private TileManager tileManager; // Pour récupérer les images des persos
     
     // on crer d'abord des variable boléenne qui nous permettrons d'activé nos affichages
-    // Affichage : Game Over 
-    // Affiche Victoire
-    private boolean isGameOver = false;
-    private boolean isVictory = false;
+    // On utilise un Enum pour gérer Menu, Jeu, Game Over, Victoire proprement
+    public enum State { MENU, PLAY, GAME_OVER, VICTORY }
+    private State state = State.MENU;
 
-    public GameRender(Dungeon dungeon, Hero hero) {
+    // Index du héros choisi (0, 1 ou 2)
+    private int selectedHeroIndex = 0; 
+
+    public GameRender(Dungeon dungeon, Hero hero, TileManager tm) {
         this.dungeon = dungeon;
         this.hero = hero;
+        this.tileManager = tm;
     }
 
-    // Cette methode nous permettra de changer l'état du jeu depuis notre MainInterface selon le staut de GameOver
-    public void setGameOver(boolean status) {
-        this.isGameOver = status;
+    // Cette methode nous permettra de changer l'état du jeu depuis notre MainInterface
+    public void setState(State state) {
+        this.state = state;
     }
-    // Cette methode nous permettra de changer l'état du jeu depuis notre MainInterface selon le staut de Victory
-    public void setVictory(boolean status) {
-        this.isVictory = status;
+
+    public State getState() {
+        return state;
+    }
+
+    // Setter pour changer le héros sélectionné (0, 1 ou 2), cela nous permettra de choisir le joueurvoulu avant le début du jeu
+    public void setSelectedHeroIndex(int index) {
+        this.selectedHeroIndex = index;
+    }
+    
+    // etter pour savoir lequel est choisi quand on lance le jeu
+    public int getSelectedHeroIndex() {
+        return selectedHeroIndex;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         
+        // Affichage du menu
+        if (state == State.MENU) {
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, 800, 600);
+            
+            // Titre
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.BOLD, 40));
+            g.drawString("CHOISIS TON HÉROS", 200, 150);
+            
+            // Menu de selection des trois personnages
+            // On récupère 3 images différentes depuis le TileManager
+            Image hero1 = tileManager.getTile(2, 4); // Ton héros classique
+            Image hero2 = tileManager.getTile(1, 4); // 
+            Image hero3 = tileManager.getTile(3, 4); // 
+
+            // On les dessine en plus gros (64x64) pour bien voir
+            // Perso 1 (Gauche)
+            g.drawImage(hero1, 200, 250, 64, 64, null);
+            // Perso 2 (Milieu)
+            g.drawImage(hero2, 368, 250, 64, 64, null);
+            // Perso 3 (Droite)
+            g.drawImage(hero3, 536, 250, 64, 64, null);
+
+            // Cadre de sélection du joueur une fois sélectionner
+            g.setColor(Color.YELLOW);
+            // On dessine le cadre autour du bon perso selon selectedHeroIndex
+            if (selectedHeroIndex == 0) g.drawRect(195, 245, 74, 74);
+            if (selectedHeroIndex == 1) g.drawRect(363, 245, 74, 74);
+            if (selectedHeroIndex == 2) g.drawRect(531, 245, 74, 74);
+
+            // Bouton JOUER
+            g.setColor(Color.GRAY);
+            g.fillRect(300, 400, 200, 60);
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.BOLD, 30));
+            g.drawString("JOUER", 345, 440);
+            return; // On arrête l'affichage ici pour le menu
+        }
+
+
         // Affichage du jeu grace au "draw"
         for (Things thing : dungeon.getListThings()) {
             thing.draw(g);
@@ -41,16 +97,16 @@ public class GameRender extends JPanel {
         
         // Affichage de la barre de vie de notre héro 
         g.setColor(Color.BLACK);// Contours
-        g.fillRect(19, 19, 202, 22); 
+        g.fillRect(5, 5, 202, 22); 
         g.setColor(Color.RED); // Barre de vie
         int lifeWidth = hero.getLife() * 2;
         if (lifeWidth < 0) lifeWidth = 0;
-        g.fillRect(20, 20, lifeWidth, 20); 
+        g.fillRect(6, 6, lifeWidth, 20); 
         g.setColor(Color.WHITE); // Fond de la barre
-        g.drawRect(19, 19, 202, 22);
+        g.drawRect(5, 5, 202, 22);
 
         // Affichage de l'écran de fin en fonction du status de GameOver et Victory
-        if (isGameOver) {
+        if (state == State.GAME_OVER) {
             // Fond semi-transparent noir
             g.setColor(new Color(0, 0, 0, 150));
             g.fillRect(0, 0, 800, 600);
@@ -58,9 +114,16 @@ public class GameRender extends JPanel {
             // Texte de défaite
             g.setColor(Color.ORANGE);
             g.setFont(new Font("Arial", Font.BOLD, 60));
-            g.drawString("GAME OVER", 200, 300);
+            g.drawString("GAME OVER", 200, 250);
+
+            // Bouton rejouer
+            g.setColor(Color.WHITE);
+            g.fillRect(300, 350, 200, 60);
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Arial", Font.BOLD, 30));
+            g.drawString("REJOUER", 325, 390);
         }
-        else if (isVictory) {
+        else if (state == State.VICTORY) {
             // Fond semi-transparent doré/jaune
             g.setColor(new Color(255, 215, 0, 100));
             g.fillRect(0, 0, 800, 600);
