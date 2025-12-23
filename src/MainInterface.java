@@ -1,6 +1,6 @@
 import javax.swing.JFrame;
 import javax.swing.Timer;
-import javax.swing.JOptionPane; // Pour afficher les erreurs
+import javax.swing.JOptionPane;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,7 +12,6 @@ import java.io.File;
 
 public class MainInterface extends JFrame {
     
-    // --- ATTRIBUTS DE CLASSE (Accessibles partout) ---
     private GameRender renderPanel;
     private AudioPlayer player;
 
@@ -24,7 +23,6 @@ public class MainInterface extends JFrame {
         this.setSize(new Dimension(800, 600));
         this.setLocationRelativeTo(null); 
         
-        // On initialise le panneau de rendu ici
         this.renderPanel = new GameRender(dungeon, hero, tm);
         this.setContentPane(renderPanel);
 
@@ -35,23 +33,16 @@ public class MainInterface extends JFrame {
                 int x = e.getX();
                 int y = e.getY();
                 
-                // Gestion du clic dans le MENU
                 if (renderPanel.getState() == GameRender.State.MENU) {
-                    // Sélection des têtes
-                    if (y >= 250 && y <= 314) {
-                        if (x >= 200 && x <= 264) renderPanel.setSelectedHeroIndex(0);
-                        else if (x >= 368 && x <= 432) renderPanel.setSelectedHeroIndex(1);
-                        else if (x >= 536 && x <= 600) renderPanel.setSelectedHeroIndex(2);
-                        renderPanel.repaint();
+                    if (y >= 180 && y <= 300) {
+                        if (x >= 130 && x <= 250) { renderPanel.setSelectedHeroIndex(0); renderPanel.repaint(); }
+                        else if (x >= 310 && x <= 430) { renderPanel.setSelectedHeroIndex(1); renderPanel.repaint(); }
+                        else if (x >= 490 && x <= 610) { renderPanel.setSelectedHeroIndex(2); renderPanel.repaint(); }
                     }
-
-                    // Bouton JOUER
-                    if (x >= 300 && x <= 500 && y >= 400 && y <= 460) {
+                    if (x >= 300 && x <= 500 && y >= 450 && y <= 510) {
                         lancerLeJeu(hero, tm);
                     }
                 }
-                
-                // Gestion du clic GAME OVER
                 else if (renderPanel.getState() == GameRender.State.GAME_OVER) {
                     if (x >= 300 && x <= 500 && y >= 350 && y <= 410) {
                         recommencerJeu(hero, dungeon);
@@ -70,33 +61,19 @@ public class MainInterface extends JFrame {
             @Override public void keyPressed(KeyEvent e) {
                 int key = e.getKeyCode();
                 
-                // --- NAVIGATION MENU ---
                 if (renderPanel.getState() == GameRender.State.MENU) {
-                    if (key == KeyEvent.VK_RIGHT) {
-                        int index = renderPanel.getSelectedHeroIndex() + 1;
-                        if (index > 2) index = 0; 
-                        renderPanel.setSelectedHeroIndex(index);
-                    }
-                    else if (key == KeyEvent.VK_LEFT) {
-                        int index = renderPanel.getSelectedHeroIndex() - 1;
-                        if (index < 0) index = 2; 
-                        renderPanel.setSelectedHeroIndex(index);
-                    }
-                    else if (key == KeyEvent.VK_ENTER) {
-                        lancerLeJeu(hero, tm);
-                    }
-                    renderPanel.repaint();
+                    if (key == KeyEvent.VK_ENTER) lancerLeJeu(hero, tm);
                     return; 
                 }
 
-                // --- JEU EN COURS ---
                 if (renderPanel.getState() == GameRender.State.PLAY && hero.getLife() > 0) {
-                    double speed = 10.0; 
+                    double speed = hero.getSpeed(); 
+                    
                     switch (key) {
-                        case KeyEvent.VK_LEFT:  hero.moveIfPossible(-speed, 0, dungeon); break;
-                        case KeyEvent.VK_RIGHT: hero.moveIfPossible(speed, 0, dungeon); break;
-                        case KeyEvent.VK_UP:    hero.moveIfPossible(0, -speed, dungeon); break;
-                        case KeyEvent.VK_DOWN:  hero.moveIfPossible(0, speed, dungeon); break;
+                        case KeyEvent.VK_LEFT:  hero.setOrientation(Orientation.LEFT);   hero.moveIfPossible(-speed, 0, dungeon); break;
+                        case KeyEvent.VK_RIGHT: hero.setOrientation(Orientation.RIGHT);  hero.moveIfPossible(speed, 0, dungeon); break;
+                        case KeyEvent.VK_UP:    hero.setOrientation(Orientation.TOP);    hero.moveIfPossible(0, -speed, dungeon); break;
+                        case KeyEvent.VK_DOWN:  hero.setOrientation(Orientation.BOTTOM); hero.moveIfPossible(0, speed, dungeon); break;
                         case KeyEvent.VK_PLUS: case KeyEvent.VK_ADD: player.adjustVolume(2.0f); break; 
                         case KeyEvent.VK_MINUS: case KeyEvent.VK_SUBTRACT: player.adjustVolume(-2.0f); break; 
                     } 
@@ -105,7 +82,7 @@ public class MainInterface extends JFrame {
             }
         });
 
-        // --- TIMER (Boucle de jeu) ---
+        // --- TIMER ---
         Timer timer = new Timer(30, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -117,10 +94,16 @@ public class MainInterface extends JFrame {
                     return; 
                 }
 
-                // Logique du jeu 
-                int heroX = (int) hero.getX() / 32;
-                int heroY = (int) hero.getY() / 32;
-                char currentTile = dungeon.getTileChar(heroX, heroY);
+                int heroTileX = (int) (hero.getX() + 12) / 32;
+                int heroTileY = (int) (hero.getY() + 16) / 32;
+                char currentTile = dungeon.getTileChar(heroTileX, heroTileY);
+
+                // --- RAMASSAGE D'OBJET ---
+                if (currentTile == 'O') {
+                    hero.setHasWeapon(true);
+                    System.out.println("Arme récupérée !");
+                    dungeon.removeThing(heroTileX, heroTileY);
+                }
 
                 if (currentTile == 'X') hero.takeDamage(5);
                 if (currentTile == 'L') hero.takeDamage(3);
@@ -138,7 +121,7 @@ public class MainInterface extends JFrame {
                     if (hero.getHitBox() != null) hero.getHitBox().setPosition(600, 400);
                 }
                 
-                if (currentTile == 'E') {
+                if (currentTile == 'B') {
                     renderPanel.setState(GameRender.State.VICTORY);
                 }
 
@@ -150,28 +133,20 @@ public class MainInterface extends JFrame {
         this.setVisible(true);
     }
 
-    // Méthode helper pour lancer le jeu (évite de dupliquer le code)
     private void lancerLeJeu(Hero hero, TileManager tm) {
         int choix = renderPanel.getSelectedHeroIndex();
+        if (choix == 0) hero.setType(HeroType.CHEVALIER); 
+        if (choix == 1) hero.setType(HeroType.MAGICIEN); 
+        if (choix == 2) hero.setType(HeroType.LUTIN);
         
-        // Vérification pour éviter le crash si l'image est nulle
-        java.awt.Image img = null;
-        if (choix == 0) img = tm.getTile(2, 4); 
-        if (choix == 1) img = tm.getTile(1, 4); 
-        if (choix == 2) img = tm.getTile(3, 4);
-        
-        if (img != null) {
-            hero.setImage(img);
-        } else {
-            System.out.println("Attention : Image du héros introuvable !");
-        }
-        
+        // IMPORTANT : On recharge les objets pour que le 'O' devienne la bonne arme
+        renderPanel.getDungeon().respawnListOfThings();
+
         player.playMusic("game.wav"); 
         renderPanel.setState(GameRender.State.PLAY);
         renderPanel.repaint();
     }
 
-    // Méthode helper pour recommencer
     private void recommencerJeu(Hero hero, Dungeon dungeon) {
         hero.respawn(); 
         dungeon.loadLevel("level1.txt");
@@ -180,19 +155,14 @@ public class MainInterface extends JFrame {
         renderPanel.repaint();
     }
 
-    // --- MAIN AVEC GESTION D'ERREUR ---
     public static void main(String[] args) {
         try {
-            // Vérification basique des fichiers avant de lancer
             File f = new File("tileSet.png");
-            if (!f.exists()) {
-                System.out.println("ATTENTION: tileSet.png est introuvable à la racine du projet !");
-            }
+            if (!f.exists()) System.out.println("ATTENTION: tileSet.png est introuvable !");
 
             TileManager tm = new TileManager(32, 32, "tileSet.png");
             Dungeon dungeon = new Dungeon("level1.txt", tm); 
             Hero hero = Hero.getInstance();
-            
             hero.setPosition(300, 400); 
 
             AudioPlayer player = new AudioPlayer();
@@ -201,9 +171,8 @@ public class MainInterface extends JFrame {
             new MainInterface(dungeon, hero, tm, player);
             
         } catch (Exception e) {
-            // Si ça plante, une fenêtre va s'ouvrir pour vous dire pourquoi
             e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Erreur fatale au lancement :\n" + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Erreur fatale :\n" + e.getMessage());
         }
     }
 }
