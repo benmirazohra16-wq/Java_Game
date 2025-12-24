@@ -5,9 +5,8 @@ public final class Hero extends DynamicThings {
     private HeroType type;
     private double speed = 10.0; 
     private Orientation orientation = Orientation.BOTTOM;
-    
     private boolean hasWeapon = false; 
-
+    private int magicienHealCount = 0; 
     private Image[][] sprites; 
     private int life = 100;
 
@@ -29,7 +28,6 @@ public final class Hero extends DynamicThings {
     public void setType(HeroType type) {
         this.type = type;
         String filename = "chevalier.png";
-        
         int largeurPerso = 24; 
         int hauteurPerso = 32;
 
@@ -42,20 +40,14 @@ public final class Hero extends DynamicThings {
         try {
             TileManager tmHero = new TileManager(largeurPerso, hauteurPerso, filename); 
             this.sprites = new Image[4][3];
-
             for(int col=0; col<3; col++) {
-                sprites[0][col] = tmHero.getTile(col, 0); // Dos
-                sprites[1][col] = tmHero.getTile(col, 3); // Gauche
-                sprites[2][col] = tmHero.getTile(col, 2); // Face
-                sprites[3][col] = tmHero.getTile(col, 1); // Droite
+                sprites[0][col] = tmHero.getTile(col, 0); 
+                sprites[1][col] = tmHero.getTile(col, 3); 
+                sprites[2][col] = tmHero.getTile(col, 2); 
+                sprites[3][col] = tmHero.getTile(col, 1); 
             }
             this.setImage(sprites[2][1]); 
-            
-            // Hitbox réduite
-            if (this.getHitBox() != null) {
-                this.getHitBox().setSize(14, 10);
-            }
-
+            if (this.getHitBox() != null) this.getHitBox().setSize(14, 10);
         } catch (Exception e) {
             System.out.println("Problème image hero : " + filename);
         }
@@ -65,13 +57,49 @@ public final class Hero extends DynamicThings {
     public void setPosition(double x, double y) {
         this.x = (int)x;
         this.y = (int)y;
-        
-        if (getHitBox() != null) {
-            // Centrage de la hitbox aux pieds
-            getHitBox().setPosition(x + 5, y + 22);
-        }
+        if (getHitBox() != null) getHitBox().setPosition(x + 5, y + 22);
     }
     
+    public void attack(Dungeon dungeon, TileManager tm) {
+        if (!hasWeapon) { System.out.println("Pas d'arme !"); return; }
+
+        if (this.type == HeroType.CHEVALIER) {
+            int devantX = (int)x;
+            int devantY = (int)y;
+            if (orientation == Orientation.RIGHT) devantX += 32;
+            if (orientation == Orientation.LEFT)  devantX -= 32;
+            if (orientation == Orientation.BOTTOM) devantY += 32;
+            if (orientation == Orientation.TOP)    devantY -= 32;
+
+            dungeon.getListThings().add(new Effect(devantX, devantY, tm.getTile(5, 5), 200));
+
+            for (int i = dungeon.getListThings().size() - 1; i >= 0; i--) {
+                Things thing = dungeon.getListThings().get(i);
+                if (thing instanceof Monster) {
+                    double distance = Math.sqrt(Math.pow(thing.x - this.x, 2) + Math.pow(thing.y - this.y, 2));
+                    if (distance <= 64) { 
+                        if (((Monster)thing).takeDamage(2)) dungeon.getListThings().remove(i); 
+                    }
+                }
+            }
+        }
+        else if (this.type == HeroType.MAGICIEN) {
+            double dx = 0, dy = 0;
+            if (orientation == Orientation.RIGHT) dx = 1;
+            if (orientation == Orientation.LEFT)  dx = -1;
+            if (orientation == Orientation.BOTTOM) dy = 1;
+            if (orientation == Orientation.TOP)    dy = -1;
+            dungeon.getListThings().add(new Missile((int)x, (int)y, tm.getTile(8, 1), dx, dy));
+        }
+    }
+
+    public void tryToHeal() {
+        if (type == HeroType.MAGICIEN && magicienHealCount < 2) {
+            this.life = 100;
+            magicienHealCount++;
+        }
+    }
+
     public void setHasWeapon(boolean has) { this.hasWeapon = has; }
     public boolean hasWeapon() { return this.hasWeapon; }
 
@@ -108,6 +136,7 @@ public final class Hero extends DynamicThings {
         this.x = 300; 
         this.y = 400;
         this.hasWeapon = false;
+        this.magicienHealCount = 0;
         this.orientation = Orientation.BOTTOM;
         if(sprites != null) this.setImage(sprites[2][1]);
         if (getHitBox() != null) getHitBox().setPosition(x, y);
