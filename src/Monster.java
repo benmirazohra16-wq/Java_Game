@@ -5,20 +5,59 @@ public class Monster extends DynamicThings {
     private double directionY = 1;    
     private double patrolSpeed = 2.0; 
     private double chaseSpeed = 2.5;  
-    private int life = 6; 
+    
+    // --- MODIFICATION ICI : 8 PV pour tenir 4 coups ---
+    private int maxLife = 8; 
+    private int life = 8; 
+
+    // --- VARIABLES DE RECUL ---
+    private boolean isKnockback = false;
+    private int knockbackTimer = 0;
+    private double knockbackX = 0;
+    private double knockbackY = 0;
 
     public Monster(int x, int y, Image image) {
         super(x, y, image);
         if (this.getHitBox() != null) this.getHitBox().setSize(32, 32);
     }
 
+    // Méthode simple (compatibilité)
     public boolean takeDamage(int damage) {
+        return takeDamage(damage, 0, 0); 
+    }
+
+    // Méthode avec RECUL
+    public boolean takeDamage(int damage, double attackerX, double attackerY) {
         this.life -= damage;
-        System.out.println("Monstre touché ! PV restants : " + this.life);
+        
+        if (attackerX != 0 || attackerY != 0) {
+            this.isKnockback = true;
+            this.knockbackTimer = 5; 
+            
+            double dx = this.x - attackerX;
+            double dy = this.y - attackerY;
+            double dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist > 0) {
+                this.knockbackX = (dx / dist) * 10; 
+                this.knockbackY = (dy / dist) * 10;
+            }
+        }
+        System.out.println("PV restants : " + this.life);
         return this.life <= 0;
     }
 
+    public int getLife() { return life; }
+    public int getMaxLife() { return maxLife; }
+
     public void update(Dungeon dungeon, Hero hero) {
+        if (isKnockback) {
+            moveIfPossible(knockbackX, knockbackY, dungeon);
+            knockbackTimer--;
+            if (knockbackTimer <= 0) isKnockback = false;
+            return; 
+        }
+
         double distHero = Math.sqrt(Math.pow(hero.getX() - this.x, 2) + Math.pow(hero.getY() - this.y, 2));
 
         if (!isAggro) {

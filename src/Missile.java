@@ -14,11 +14,16 @@ public class Missile extends DynamicThings {
         this.startY = y;
         this.creationTime = System.currentTimeMillis();
         
-        if (getHitBox() != null) getHitBox().setSize(16, 16);
+        if (getHitBox() != null) getHitBox().setSize(24, 24);
     }
 
     public void move(Dungeon dungeon) {
-        moveIfPossible(directionX * 15, directionY * 15, dungeon);
+        moveIfPossible(directionX * 10, directionY * 10, dungeon);
+        
+        // Mise à jour de la Hitbox
+        if (getHitBox() != null) {
+            getHitBox().setPosition(this.x, this.y);
+        }
     }
     
     public boolean isExpired() {

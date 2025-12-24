@@ -2,55 +2,56 @@ import javax.sound.sampled.*;
 import java.io.File;
 
 public class AudioPlayer {
-    private Clip clip;
-    private FloatControl volumeControl; // Le "bouton" de volume
+    private Clip musicClip; 
+    private FloatControl musicVolume; 
 
     public void playMusic(String filePath) {
-        // On arrête toujours la musique précédente avant de lancer la nouvelle
         stopMusic();
-
         try {
             File musicPath = new File(filePath);
-            
             if (musicPath.exists()) {
                 AudioInputStream audioInput = AudioSystem.getAudioInputStream(musicPath);
-                clip = AudioSystem.getClip();
-                clip.open(audioInput);
-
-                // On essaie de récupérer le contrôle du volume
-                if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-                    volumeControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                musicClip = AudioSystem.getClip();
+                musicClip.open(audioInput);
+                if (musicClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                    musicVolume = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
+                    musicVolume.setValue(-10.0f); // Musique plus douce
                 }
-
-                clip.start();
-                clip.loop(Clip.LOOP_CONTINUOUSLY); // Musique en boucle
-            } else {
-                System.out.println("Fichier introuvable : " + filePath);
+                musicClip.start();
+                musicClip.loop(Clip.LOOP_CONTINUOUSLY);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    public void playSound(String filePath) {
+        try {
+            File soundPath = new File(filePath);
+            if (soundPath.exists()) {
+                AudioInputStream audioInput = AudioSystem.getAudioInputStream(soundPath);
+                Clip sfxClip = AudioSystem.getClip(); 
+                sfxClip.open(audioInput);
+                if (sfxClip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                    FloatControl gain = (FloatControl) sfxClip.getControl(FloatControl.Type.MASTER_GAIN);
+                    gain.setValue(6.0f); // Bruitage à fond !
+                }
+                sfxClip.start();
+            }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     public void stopMusic() {
-        if (clip != null && clip.isRunning()) {
-            clip.stop();
-            clip.close();
+        if (musicClip != null && musicClip.isRunning()) {
+            musicClip.stop();
+            musicClip.close();
         }
     }
 
-    // Pour monter ou baisser le son
     public void adjustVolume(float value) {
-        if (volumeControl != null) {
-            float current = volumeControl.getValue();
-            float newValue = current + value;
-            
-            // Limites pour ne pas faire planter le son (Max 6.0, Min -80.0)
-            if (newValue > 6.0f) newValue = 6.0f;     
-            if (newValue < -80.0f) newValue = -80.0f; 
-
-            volumeControl.setValue(newValue);
-            System.out.println("Volume : " + newValue);
+        if (musicVolume != null) {
+            float newVol = musicVolume.getValue() + value;
+            if (newVol > 6.0f) newVol = 6.0f;     
+            if (newVol < -80.0f) newVol = -80.0f; 
+            musicVolume.setValue(newVol);
         }
     }
 }

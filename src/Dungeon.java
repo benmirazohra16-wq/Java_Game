@@ -53,7 +53,7 @@ public class Dungeon {
                     listThings.add(new Things(x, y, tileManager.getTile(2, 2)));
                     HeroType type = Hero.getInstance().getType();
                     if (type == HeroType.MAGICIEN) listThings.add(new Things(x, y, tileManager.getTile(8, 7))); 
-                    else if (type == HeroType.LUTIN) listThings.add(new Things(x, y, tileManager.getTile(7, 9))); 
+                    else if (type == HeroType.LUTIN) listThings.add(new Things(x, y, tileManager.getTile(7, 8))); 
                     else listThings.add(new Things(x, y, tileManager.getTile(3, 8))); 
                 }
                 else if (c == 'N' || c == 'P' || c == 'E') listThings.add(new Things(x, y, tileManager.getTile(0, 3)));
