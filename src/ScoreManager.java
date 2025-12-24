@@ -2,7 +2,8 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 
-// Classe simple pour stocker un score (Nom + Temps)
+// Petite classe interne pour stocker un score (Nom + Temps).
+// Elle implémente "Comparable" pour qu'on puisse trier la liste automatiquement plus tard.
 class Score implements Comparable<Score> {
     String name;
     long time;
@@ -12,7 +13,8 @@ class Score implements Comparable<Score> {
         this.time = time;
     }
 
-    // Cette méthode permet de trier les scores du plus petit temps au plus grand
+    // Cette méthode explique à Java comment comparer deux scores.
+    // Ici, on veut que le plus petit temps arrive en premier (c'est le meilleur).
     @Override
     public int compareTo(Score other) {
         return Long.compare(this.time, other.time);
@@ -20,36 +22,42 @@ class Score implements Comparable<Score> {
 }
 
 public class ScoreManager {
-    private String filePath = "scores.txt"; // Le fichier sera créé à la racine du projet
+    // Le nom du fichier où seront stockés les scores.
+    private String filePath = "scores.txt"; 
 
-    // Sauvegarder un nouveau score
+    // Méthode pour écrire un score sur le disque dur.
     public void saveScore(String name, long time) {
+        // On utilise FileWriter avec le paramètre 'true' pour dire "AJOUTE à la fin du fichier"
+        // (au lieu d'écraser tout le fichier à chaque fois).
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
-            writer.write(name + ":" + time);
-            writer.newLine();
+            writer.write(name + ":" + time); // On écrit sous la forme "Pseudo:120"
+            writer.newLine(); // On passe à la ligne suivante
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // En cas d'erreur (disque plein, etc.)
         }
     }
 
-    // Récupérer le Top 5 des meilleurs scores
+    // Méthode pour récupérer et trier les meilleurs scores.
     public ArrayList<Score> getTopScores() {
         ArrayList<Score> scores = new ArrayList<>();
         File file = new File(filePath);
         
-        // Si le fichier n'existe pas encore, on renvoie une liste vide
+        // Si le fichier n'existe pas encore (première partie), on renvoie une liste vide.
         if (!file.exists()) return scores;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
+            // On lit le fichier ligne par ligne.
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(":");
-                // On vérifie que la ligne est bien formatée (Nom:Temps)
+                String[] parts = line.split(":"); // On sépare le nom et le temps
+                
+                // On vérifie que la ligne est bien formatée (il faut 2 parties).
                 if (parts.length == 2) {
                     try {
+                        // On convertit le temps (String) en nombre (Long) et on l'ajoute.
                         scores.add(new Score(parts[0], Long.parseLong(parts[1])));
                     } catch (NumberFormatException e) {
-                        // Ignorer les lignes corrompues
+                        // Si une ligne est corrompue, on l'ignore silencieusement.
                     }
                 }
             }
@@ -57,10 +65,10 @@ public class ScoreManager {
             e.printStackTrace();
         }
 
-        // On trie la liste (le plus rapide en premier)
+        // C'est ici que la magie opère : Java trie la liste grâce à notre "compareTo".
         Collections.sort(scores);
         
-        // On ne garde que les 5 premiers
+        // On coupe la liste pour ne garder que les 5 premiers (le Top 5).
         if (scores.size() > 5) {
             return new ArrayList<>(scores.subList(0, 5));
         }
